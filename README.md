@@ -47,6 +47,40 @@ python app.py
 
 Open http://127.0.0.1:5000.
 
+## Run continuously on Windows
+
+The project includes a detached Waitress launcher that stays running after the terminal closes:
+
+```powershell
+.\start-server.ps1
+```
+
+Stop the server with:
+
+```powershell
+Get-CimInstance Win32_Process |
+    Where-Object { $_.CommandLine -match 'waitress-serve\.exe.*app:app' } |
+    ForEach-Object { Stop-Process -Id $_.ProcessId -Force }
+```
+
+## Deploy permanently
+
+The project includes a Render deployment manifest. Push the repository to GitHub, then create a Render Blueprint from `render.yaml`. Render provides automatic restarts, HTTPS, and persistent disk storage.
+
+Configure all secrets in Render before deploying:
+
+- `SECRET_KEY`: a long random value
+- `ADMIN_USERNAME`: a unique administrator username
+- `ADMIN_PASSWORD`: a strong password
+- `DATABASE_PATH`: `/data/scanner.db`
+
+The application is also ready for Docker:
+
+```powershell
+docker build -t web-vulnerability-scanner .
+docker run --rm -p 5000:5000 -v scanner-data:/data web-vulnerability-scanner
+```
+
 ## Run with Docker
 
 ```powershell

@@ -22,6 +22,7 @@ env/
 # Local application data and generated reports
 database/*.db
 database/*.db-*
+logs/
 report.pdf
 
 # Build and package output

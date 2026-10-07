@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Web Vulnerability Scanner{% endblock %}
+{% block breadcrumb %}Dashboard{% endblock %}
+{% block content %}
+<section class="dashboard-page">
+    <div class="page-heading dashboard-heading"><div><p class="eyebrow"><span></span>ASSESSMENT HISTORY</p><h1>Security dashboard</h1><p>Review completed scans and their current risk profile.</p></div><a class="button button-primary" href="{{ url_for('scanner') }}">New assessment <span>↗</span></a></div>
+    <div class="dashboard-grid">
+        <article class="metric-card metric-score"><div class="metric-label"><span>SECURITY SCORE</span><b>AVG</b></div><strong>{{ average_score }}</strong><div class="metric-bar"><span style="width: {{ average_score }}%"></span></div><small>Across {{ scans|length }} assessment{% if scans|length != 1 %}s{% endif %}</small></article>
+        <article class="metric-card"><div class="metric-label"><span>HIGH RISK</span><b>CRITICAL</b></div><strong>{{ high_risk_findings }}</strong><small>Findings require immediate review</small></article>
+        <article class="metric-card"><div class="metric-label"><span>TOTAL FINDINGS</span><b>REVIEW</b></div><strong>{{ total_findings }}</strong><small>Across all saved assessments</small></article>
+        <article class="metric-card"><div class="metric-label"><span>SEVERITY MIX</span><b>ISSUES</b></div><strong>{{ severity_counts.high + severity_counts.medium + severity_counts.low }}</strong><small>High {{ severity_counts.high }} · Medium {{ severity_counts.medium }} · Low {{ severity_counts.low }}</small></article>
+    </div>
+    <div class="table-card">
+        <div class="table-header"><div><h2>Recent assessments</h2><p>Scan records are stored locally in SQLite.</p></div><div class="header-actions"><a class="button button-small button-ghost" href="{{ url_for('export_reports_csv') }}">Export CSV</a><a class="button button-small button-primary" href="{{ url_for('export_reports_json') }}">Export JSON</a><span class="table-count" id="table-count">{{ scans|length }} RECORDS</span></div></div>
+        {% if scans %}
+        <div class="dashboard-filters">
+            <input id="dashboard-search" type="search" placeholder="Filter by target, URL or code" aria-label="Filter assessments">
+            <select id="dashboard-severity-filter" aria-label="Filter by severity">
+                <option value="all">All severities</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+            </select>
+        </div>
+        <div class="table-scroll"><table><thead><tr><th>Target</th><th>Score</th><th>Severity</th><th>Findings</th><th>Completed</th><th></th></tr></thead><tbody>{% for scan in scans %}<tr data-target="{{ scan.target|lower }}" data-severity="{{ scan.severity|default('low')|lower }}"><td><span class="target-icon">↗</span><div><strong>{{ scan.target }}</strong><small>{{ scan.final_url }}</small></div></td><td><strong>{{ scan.score }}/100</strong></td><td><span class="severity severity-{{ scan.severity|default('low') }}">{{ (scan.severity|default('low'))|title }}</span></td><td>{{ scan.findings|length }}</td><td>{{ scan.scanned_at|replace('T',' ') }}</td><td><a class="report-link" href="{{ url_for('report', scan_id=scan.id) }}">View report →</a></td></tr>{% endfor %}</tbody></table></div>{% else %}<div class="empty-state"><span>⌁</span><h3>No assessments yet</h3><p>Run your first authorized scan to populate this dashboard.</p><a class="button button-primary" href="{{ url_for('scanner') }}">Start assessment</a></div>{% endif %}
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Register{% endblock %}
+{% block breadcrumb %}Create Account{% endblock %}
+
+{% block content %}
+<section class="section-block static-page auth-page">
+    <div class="auth-layout">
+        <div class="auth-intro">
+            <p class="eyebrow"><span></span>CREATE ACCOUNT</p>
+            <h1>Start your security workspace.</h1>
+            <p class="section-lead">Register to access your assessment history, manage scan results, and review your security profile.</p>
+            <ul class="auth-benefits">
+                <li><span>✓</span> Personal account</li>
+                <li><span>✓</span> Secure password hashing</li>
+                <li><span>✓</span> Private session</li>
+            </ul>
+        </div>
+
+        <div class="auth-card">
+            <div class="auth-card-heading">
+                <span class="auth-icon">✦</span>
+                <div>
+                    <h2>Register your account</h2>
+                    <p>All fields are required except contact number.</p>
+                </div>
+            </div>
+
+            {% if error_message %}
+            <div class="info-card error-box"><p>{{ error_message }}</p></div>
+            {% endif %}
+
+            <form method="post" action="{{ url_for('register_submit') }}" class="auth-form">
+                <label for="name">Full name</label>
+                <input id="name" name="name" type="text" autocomplete="name" minlength="2" placeholder="Your full name" required>
+
+                <label for="email">Email address</label>
+                <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters" required>
+
+                <label for="contact">Contact number</label>
+                <input id="contact" name="contact" type="tel" autocomplete="tel" placeholder="Optional, e.g. +91 98765 43210">
+
+                <button class="button button-primary scan-button" type="submit">Create account</button>
+            </form>
+
+            <p class="auth-switch">Already have an account? <a href="{{ url_for('login') }}">Sign in</a></p>
+        </div>
+    </div>
+</section>
+{% endblock %}

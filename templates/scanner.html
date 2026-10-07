@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Scanner — Web Vulnerability Scanner{% endblock %}
+{% block breadcrumb %}Scanner{% endblock %}
+{% block content %}
+<section class="scanner-page">
+    <div class="page-heading">
+        <p class="eyebrow"><span></span>NEW ASSESSMENT</p>
+        <h1>Security scan</h1>
+        <p>Enter a website you own or have explicit permission to test. The scanner performs bounded, read-only checks.</p>
+    </div>
+    <div class="scanner-layout">
+        <form id="scan-form" class="scan-form-card">
+            <div class="form-header"><span>01</span><div><h2>Target information</h2><p>HTTP and HTTPS URLs only.</p></div></div>
+            <label for="target">Website URL</label>
+            <div class="url-field"><span>↗</span><input id="target" name="target" type="url" inputmode="url" autocomplete="url" placeholder="https://example.com" required maxlength="2048"></div>
+            <div class="authorization-note"><span>i</span><p><strong>Authorized testing only.</strong> Private, loopback, and link-local targets are blocked by default.</p></div>
+            <div class="scan-options">
+                <div><span class="option-check">✓</span><p><strong>Headers</strong><small>Security policy inspection</small></p></div>
+                <div><span class="option-check">✓</span><p><strong>Cookies</strong><small>Secure attribute checks</small></p></div>
+                <div><span class="option-check">✓</span><p><strong>Transport</strong><small>HTTP and TLS exposure</small></p></div>
+            </div>
+            <button class="button button-primary scan-button" type="submit"><span class="button-label">Run security assessment</span><span class="button-icon">↗</span></button>
+            <p class="form-disclaimer">The assessment performs read-only requests and does not execute application code or submit credentials.</p>
+        </form>
+        <aside class="scan-sidebar">
+            <div class="sidebar-card">
+                <p class="eyebrow"><span></span>SCAN BOUNDARIES</p>
+                <h2>Safe by default.</h2>
+                <ul>
+                    <li><span>✓</span><div><strong>10-second timeout</strong><small>Prevents long-running requests</small></div></li>
+                    <li><span>✓</span><div><strong>Limited redirects</strong><small>Stops redirect loops</small></div></li>
+                    <li><span>✓</span><div><strong>Response cap</strong><small>Limits memory and inspection</small></div></li>
+                    <li><span>✓</span><div><strong>No credentials</strong><small>URLs containing credentials are rejected</small></div></li>
+                </ul>
+            </div>
+            <div class="sidebar-card warning-card"><span class="warning-icon">!</span><h3>Important</h3><p>Automated checks cannot replace professional penetration testing. Findings may be false positives or false negatives.</p></div>
+        </aside>
+    </div>
+</section>
+{% endblock %}

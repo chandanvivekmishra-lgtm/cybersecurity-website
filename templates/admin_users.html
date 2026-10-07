@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin User Management{% endblock %}
+{% block breadcrumb %}Admin Users{% endblock %}
+
+{% block content %}
+<section class="section-block static-page">
+    <div class="dashboard-heading">
+        <div>
+            <p class="eyebrow"><span></span>SECURITY OPERATIONS</p>
+            <h1>Administrator Users</h1>
+        </div>
+        <a class="button button-outline" href="{{ url_for('admin_dashboard') }}">Back to admin dashboard</a>
+    </div>
+
+    <div class="info-card">
+        <p><strong>{{ users|length }}</strong> configured user account{% if users|length != 1 %}s{% endif %}.</p>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Access</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.role|title }}</td>
+                    <td>{{ user.status|title }}</td>
+                    <td>{% if user.status == 'active' %}Enabled{% else %}Review required{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

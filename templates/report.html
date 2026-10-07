@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Assessment Report — Web Vulnerability Scanner{% endblock %}
+{% block breadcrumb %}Report{% endblock %}
+{% block content %}
+<section class="report-page">
+    <div class="page-heading report-heading"><div><p class="eyebrow"><span></span>ASSESSMENT REPORT</p><h1>{{ scan.target }}</h1><p>Completed {{ scan.scanned_at|replace('T',' ') }}</p></div><div class="report-actions"><a class="button button-outline" href="{{ url_for('dashboard') }}">Back to dashboard</a><a class="button button-outline" href="{{ url_for('pdf_report', scan_id=scan.id) }}">Download PDF ↓</a><button id="print-report" class="button button-primary" type="button">Print report ↗</button></div></div>
+    <div class="report-summary">
+        <div class="report-score"><small>SECURITY SCORE</small><strong>{{ scan.score }}<span>/100</span></strong><p>{{ (scan.severity|default('low'))|title }} risk · {{ (scan.risk_level|default('low'))|title }} level</p></div>
+        <div class="report-stat"><span>HTTP STATUS</span><strong>{{ scan.response_status }}</strong></div>
+        <div class="report-stat"><span>RESPONSE SIZE</span><strong>{{ scan.response_size }} bytes</strong></div>
+        <div class="report-stat"><span>FINDINGS</span><strong>{{ scan.findings|length }}</strong></div>
+    </div>
+    <div class="report-content">
+        <div class="report-main"><h2>Findings</h2>{% if scan.findings %}<div class="finding-list">{% for finding in scan.findings %}<article class="finding-card severity-{{ finding.severity }}"><div class="finding-top"><span class="finding-severity">{{ finding.severity|upper }}</span><code>{{ finding.code }}</code></div><h3>{{ finding.message }}</h3><div class="metadata-row"><span>Confidence: {{ finding.confidence|default('medium')|title }}</span><span>OWASP: {{ finding.owasp|default('A5: Security Misconfiguration') }}</span></div><div class="evidence"><span>OBSERVED EVIDENCE</span><p>{{ finding.evidence }}</p></div><div class="remediation"><span>REMEDIATION</span><p>{{ finding.remediation }}</p></div></article>{% endfor %}</div>{% else %}<div class="no-findings"><span>✓</span><h3>No findings detected</h3><p>The inspected response did not contain the selected security indicators.</p></div>{% endif %}</div>
+        <aside class="report-aside"><div class="aside-card"><h3>Assessment summary</h3><p>{{ scan.summary }}</p><dl><div><dt>Target</dt><dd>{{ scan.target }}</dd></div><div><dt>Final URL</dt><dd>{{ scan.final_url }}</dd></div><div><dt>Completed</dt><dd>{{ scan.scanned_at|replace('T',' ') }}</dd></div>{% if scan.discovered_urls %}<div><dt>Discovered URLs</dt><dd>{{ scan.discovered_urls|length }}</dd></div>{% endif %}</dl>{% if scan.discovered_urls %}<div class="url-list"><h4>Same-origin pages</h4><ul>{% for item in scan.discovered_urls %}<li>{{ item }}</li>{% endfor %}</ul></div>{% endif %}</div><div class="aside-card disclaimer"><span>!</span><h3>Limitations</h3><p>This report is a snapshot of automated checks and must be reviewed by qualified security personnel.</p></div></aside>
+    </div>
+</section>
+{% endblock %}

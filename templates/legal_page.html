@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block breadcrumb %}{{ title }}{% endblock %}
+
+{% block content %}
+<section class="section-block static-page">
+    <div class="section-header page-info-header">
+        <p class="eyebrow"><span></span>{{ title|upper }}</p>
+        <h1>{{ title }}</h1>
+        <p class="section-lead">{{ subtitle }}</p>
+    </div>
+
+    <div class="info-card">
+        <p>{{ intro }}</p>
+
+        {% if bullets %}
+        <ul class="info-list">
+            {% for bullet in bullets %}
+            <li>{{ bullet }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+
+    {% for section in sections %}
+    <article class="info-card">
+        <h2>{{ section.heading }}</h2>
+        <p>{{ section.text }}</p>
+    </article>
+    {% endfor %}
+
+    <div class="info-card developer-card">
+        <h2>Developer information</h2>
+        <p>This website and its scanner platform were developed by <strong>Chandan Vivekanand Mishra</strong>.</p>
+        <p>It is intended to support responsible and authorized web security assessment workflows with clear reporting, practical guidance, and a professional dashboard experience.</p>
+    </div>
+</section>
+{% endblock %}

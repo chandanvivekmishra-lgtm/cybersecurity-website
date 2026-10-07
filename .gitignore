@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment variables and secrets
+.env
+*.env
+!.env.example
+
+# Local editor and test files
+.vscode/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local application data and generated reports
+database/*.db
+database/*.db-*
+report.pdf
+
+# Build and package output
+build/
+dist/
+*.egg-info/

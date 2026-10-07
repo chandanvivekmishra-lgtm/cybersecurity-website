@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Login{% endblock %}
+{% block breadcrumb %}Admin{% endblock %}
+
+{% block content %}
+<section class="section-block static-page">
+    <div class="section-header page-info-header">
+        <p class="eyebrow"><span></span>ADMIN ACCESS</p>
+        <h1>Admin Login</h1>
+        <p class="section-lead">Sign in to review messages and platform activity.</p>
+    </div>
+
+    {% if error_message %}
+    <div class="info-card error-box">
+        <p>{{ error_message }}</p>
+    </div>
+    {% endif %}
+
+    <form class="scan-form-card contact-form" method="post" action="{{ url_for('admin_login_submit') }}">
+        <div class="form-header">
+            <span>🔐</span>
+            <div>
+                <h2>Secure access</h2>
+                <p>Use the administrator credentials.</p>
+            </div>
+        </div>
+
+        <label for="username">Username</label>
+        <div class="url-field">
+            <input id="username" name="username" type="text" placeholder="admin" required>
+        </div>
+
+        <label for="password">Password</label>
+        <div class="url-field">
+            <input id="password" name="password" type="password" placeholder="Enter password" required>
+        </div>
+
+        <button class="button button-primary scan-button" type="submit">Login</button>
+    </form>
+</section>
+{% endblock %}

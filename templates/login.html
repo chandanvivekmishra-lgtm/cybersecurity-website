@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Login{% endblock %}
+{% block breadcrumb %}Account Login{% endblock %}
+
+{% block content %}
+<section class="section-block static-page auth-page">
+    <div class="auth-layout">
+        <div class="auth-intro">
+            <p class="eyebrow"><span></span>SECURE ACCESS</p>
+            <h1>Welcome back.</h1>
+            <p class="section-lead">Sign in to manage your security assessment workspace and continue reviewing your scan history.</p>
+            <ul class="auth-benefits">
+                <li><span>✓</span> Protected account session</li>
+                <li><span>✓</span> Saved scan history</li>
+                <li><span>✓</span> Secure password storage</li>
+            </ul>
+        </div>
+
+        <div class="auth-card">
+            <div class="auth-card-heading">
+                <span class="auth-icon">🔐</span>
+                <div>
+                    <h2>Login to your account</h2>
+                    <p>Use your registered email and password.</p>
+                </div>
+            </div>
+
+            {% if error_message %}
+            <div class="info-card error-box"><p>{{ error_message }}</p></div>
+            {% endif %}
+
+            <form method="post" action="{{ url_for('login_submit') }}" class="auth-form">
+                <label for="email">Email address</label>
+                <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required>
+
+                <button class="button button-primary scan-button" type="submit">Sign in</button>
+            </form>
+
+            <p class="auth-switch">New to SecureScan? <a href="{{ url_for('register') }}">Create an account</a></p>
+        </div>
+    </div>
+</section>
+{% endblock %}

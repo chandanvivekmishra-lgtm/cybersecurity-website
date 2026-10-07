@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Contact Us{% endblock %}
+{% block breadcrumb %}Contact{% endblock %}
+
+{% block content %}
+<section class="section-block static-page">
+    <div class="section-header page-info-header">
+        <p class="eyebrow"><span></span>SUPPORT</p>
+        <h1>Contact us</h1>
+        <p class="section-lead">Need help with the platform, scan results, or general support? Send your message below.</p>
+    </div>
+
+    {% if success_message %}
+    <div class="info-card success-box">
+        <p><strong>Thank you.</strong> {{ success_message }}</p>
+    </div>
+    {% endif %}
+
+    {% if error_message %}
+    <div class="info-card error-box">
+        <p>{{ error_message }}</p>
+    </div>
+    {% endif %}
+
+    <div class="contact-layout">
+        <form class="scan-form-card contact-form" method="post" action="{{ url_for('contact_submit') }}">
+            <div class="form-header">
+                <span>✉</span>
+                <div>
+                    <h2>Send a message</h2>
+                    <p>We usually respond to support queries by email.</p>
+                </div>
+            </div>
+
+            <label for="name">Name</label>
+            <div class="url-field">
+                <input id="name" name="name" type="text" placeholder="Your full name" required>
+            </div>
+
+            <label for="email">Email</label>
+            <div class="url-field">
+                <input id="email" name="email" type="email" placeholder="your@email.com" required>
+            </div>
+
+            <label for="subject">Subject</label>
+            <div class="url-field">
+                <input id="subject" name="subject" type="text" placeholder="How can we help?" required>
+            </div>
+
+            <label for="message">Message</label>
+            <textarea id="message" name="message" rows="6" placeholder="Write your message here..." required></textarea>
+
+            <button class="button button-primary scan-button" type="submit">Send message</button>
+        </form>
+
+        <aside class="scan-sidebar">
+            <div class="sidebar-card">
+                <h2>Contact details</h2>
+                <ul>
+                    <li>
+                        <span>✉</span>
+                        <div><strong>Email</strong><small>chandanvivekmishra@gmail.com</small></div>
+                    </li>
+                    <li>
+                        <span>⚡</span>
+                        <div><strong>Response</strong><small>Support and guidance for authorised assessment use.</small></div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="sidebar-card warning-card">
+                <div class="warning-icon">!</div>
+                <h3>Important</h3>
+                <p>This platform is intended for authorized assessment of systems that you own or have explicit permission to test.</p>
+            </div>
+        </aside>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+{% block breadcrumb %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<section class="section-block static-page">
+    <div class="dashboard-heading">
+        <div>
+            <p class="eyebrow"><span></span>ADMIN</p>
+            <h1>Admin Dashboard</h1>
+        </div>
+        <a class="button button-outline" href="{{ url_for('admin_logout') }}">Logout</a>
+    </div>
+
+    <div class="info-card">
+        <p><strong>{{ message_count }}</strong> support message{% if message_count != 1 %}s{% endif %} received.</p>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+        <article class="info-card">
+            <h2>{{ message.subject }}</h2>
+            <p><strong>Name:</strong> {{ message.name }}<br>
+            <strong>Email:</strong> {{ message.email }}</p>
+            <p>{{ message.message }}</p>
+        </article>
+        {% endfor %}
+    {% else %}
+        <div class="info-card">
+            <p>No support messages available yet.</p>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

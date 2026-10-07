@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Web Vulnerability Scanner — Security Assessment{% endblock %}
+{% block breadcrumb %}Overview{% endblock %}
+{% block content %}
+<section class="hero">
+    <div class="hero-copy">
+        <p class="eyebrow"><span></span>AUTHORIZED SECURITY ASSESSMENT</p>
+        <h1>See the security<br><em>gaps</em> before attackers do.</h1>
+        <p class="hero-lead">A focused, read-only assessment tool for identifying common web security configuration weaknesses and turning them into actionable remediation.</p>
+        <div class="hero-actions">
+            <a class="button button-primary" href="{{ url_for('scanner') }}">Start an assessment <span>↗</span></a>
+            <a class="text-link" href="#how-it-works">How it works <span>↓</span></a>
+        </div>
+        <div class="hero-meta">
+            <div><strong>01</strong><span>Safe HTTP checks</span></div>
+            <div><strong>02</strong><span>Severity scoring</span></div>
+            <div><strong>03</strong><span>Detailed reports</span></div>
+        </div>
+    </div>
+    <div class="hero-visual" aria-label="Security assessment dashboard preview">
+        <div class="visual-glow"></div>
+        <div class="terminal-card">
+            <div class="terminal-header"><span></span><span></span><span></span><small>SECURITY_ASSESSMENT</small></div>
+            <div class="terminal-body">
+                <div class="scan-line"><span>01</span><p>Validating target</p><b>complete</b></div>
+                <div class="scan-line"><span>02</span><p>Inspecting headers</p><b>complete</b></div>
+                <div class="scan-line"><span>03</span><p>Checking cookies</p><b>complete</b></div>
+                <div class="scan-line"><span>04</span><p>Reviewing disclosure</p><b>complete</b></div>
+                <div class="score-row">
+                    <div><small>SECURITY SCORE</small><strong>87<span>/100</span></strong></div>
+                    <div class="score-ring"><span>87</span></div>
+                </div>
+            </div>
+        </div>
+        <div class="floating-note note-one"><span>✓</span><div><small>HTTPS</small><strong>ENABLED</strong></div></div>
+        <div class="floating-note note-two"><span>!</span><div><small>HEADER</small><strong>MITIGATED</strong></div></div>
+    </div>
+</section>
+<section class="section-block" id="how-it-works">
+    <div class="section-heading"><p class="eyebrow"><span></span>THE WORKFLOW</p><h2>From target to clarity.</h2></div>
+    <div class="workflow-grid">
+        <article><span class="step-number">01</span><div class="step-icon">⌁</div><h3>Define the target</h3><p>Enter an authorized HTTP or HTTPS URL. Credentials, private networks, and malformed targets are rejected.</p></article>
+        <article><span class="step-number">02</span><div class="step-icon">⌘</div><h3>Run safe checks</h3><p>Inspect response headers and cookies with strict timeouts, redirect limits, and no proxy or credential inheritance.</p></article>
+        <article><span class="step-number">03</span><div class="step-icon">↗</div><h3>Review findings</h3><p>Receive a severity score, evidence, remediation guidance, and a durable report for later review.</p></article>
+    </div>
+</section>
+<section class="section-block security-principles">
+    <div class="principle-copy"><p class="eyebrow"><span></span>SECURITY BY DESIGN</p><h2>Built for responsible assessment.</h2><p>This scanner is intentionally limited to read-only checks. It does not attempt to bypass authentication, exploit vulnerabilities, or access internal systems.</p><a class="button button-outline" href="{{ url_for('scanner') }}">Run a safe scan</a></div>
+    <div class="principle-list">
+        <div><span>01</span><p><strong>Authorization first</strong>Only scan systems you own or have explicit permission to assess.</p></div>
+        <div><span>02</span><p><strong>Bounded requests</strong>Short timeouts, response size limits, and limited redirects.</p></div>
+        <div><span>03</span><p><strong>Evidence driven</strong>Every finding includes the observed response evidence.</p></div>
+    </div>
+</section>
+{% endblock %}

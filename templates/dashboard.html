@@ -3,7 +3,7 @@
 {% block breadcrumb %}Dashboard{% endblock %}
 {% block content %}
 <section class="dashboard-page">
-    <div class="page-heading dashboard-heading"><div><p class="eyebrow"><span></span>ASSESSMENT HISTORY</p><h1>Security dashboard</h1><p>Review completed scans and their current risk profile.</p></div><a class="button button-primary" href="{{ url_for('scanner') }}">New assessment <span>↗</span></a></div>
+    <div class="page-heading dashboard-heading"><div><p class="eyebrow"><span></span>ASSESSMENT HISTORY</p><h1>Security dashboard</h1><p>Review completed scans and their current risk profile.</p></div><div class="report-actions"><a class="button button-outline" href="{{ url_for('assistant_page') }}">AI Security Assistant</a><a class="button button-primary" href="{{ url_for('scanner') }}">New assessment <span>↗</span></a></div></div>
     <div class="dashboard-grid">
         <article class="metric-card metric-score"><div class="metric-label"><span>SECURITY SCORE</span><b>AVG</b></div><strong>{{ average_score }}</strong><div class="metric-bar"><span style="width: {{ average_score }}%"></span></div><small>Across {{ scans|length }} assessment{% if scans|length != 1 %}s{% endif %}</small></article>
         <article class="metric-card"><div class="metric-label"><span>HIGH RISK</span><b>CRITICAL</b></div><strong>{{ high_risk_findings }}</strong><small>Findings require immediate review</small></article>

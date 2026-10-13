@@ -16,6 +16,9 @@ class Config:
     DEBUG = os.getenv("FLASK_DEBUG", "0") == "1"
     ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
     ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
+    AI_API_KEY = os.getenv("AI_API_KEY")
+    AI_API_BASE_URL = os.getenv("AI_API_BASE_URL", "https://api.openai.com/v1")
+    AI_MODEL = os.getenv("AI_MODEL", "gpt-4o-mini")
     MAX_REDIRECTS = 3
     REQUEST_TIMEOUT_SECONDS = 10
     MAX_RESPONSE_BYTES = 2_000_000

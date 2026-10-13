@@ -136,6 +136,10 @@ REMEDIATION_GUIDANCE = {
     "cookie_without_secure": "Add the Secure attribute and reject cookies that are received over HTTP.",
     "weak_cors_policy": "Restrict Access-Control-Allow-Origin to trusted origins and remove wildcard access for sensitive endpoints.",
     "certificate_issue": "Replace or renew the TLS certificate and ensure it is valid for the host and current date.",
+    "potential_xss": "Apply context-aware output encoding to untrusted data, sanitize intentionally supported HTML, and use a restrictive Content-Security-Policy as defense in depth. This heuristic alone does not prove XSS.",
+    "potential_sql_injection": "Use parameterized queries or prepared statements and avoid building SQL with string concatenation. SQL-like text in a response does not prove injection.",
+    "directory_listing_exposed": "Disable directory indexes in the web server and ensure that sensitive files are not web-accessible.",
+    "ssl_weakness_signal": "Review the index-style response and disable directory indexes if unintended. This observation does not indicate a TLS certificate or protocol weakness.",
 }
 
 OWASP_MAP = {

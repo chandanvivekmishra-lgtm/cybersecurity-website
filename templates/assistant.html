@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}AI Security Assistant — Web Vulnerability Scanner{% endblock %}
+{% block breadcrumb %}AI Security Assistant{% endblock %}
+{% block content %}
+<section class="assistant-page">
+    <div class="page-heading">
+        <p class="eyebrow"><span></span>OPTIONAL AI EXPLANATIONS</p>
+        <h1>AI Security Assistant</h1>
+        <p>Ask questions about saved scan evidence. Answers are guidance for review, not proof that a site is vulnerable or secure.</p>
+    </div>
+    {% if scan %}
+    <div class="assistant-scan-context">
+        <div><span>SCAN {{ scan.id }}</span><strong>{{ scan.target }}</strong></div>
+        <a class="button button-small button-ghost" href="{{ url_for('report', scan_id=scan.id) }}">View Findings</a>
+    </div>
+    {% else %}
+    <div class="assistant-scan-context">
+        <div><span>GENERAL QUESTIONS</span><strong>Open this assistant from a scan report to ask about its actual findings.</strong></div>
+        <a class="button button-small button-ghost" href="{{ url_for('dashboard') }}">Choose a scan</a>
+    </div>
+    {% endif %}
+    <div id="assistant-chat"
+         class="assistant-chat"
+         data-api-url="{{ url_for('assistant_api') }}"
+         data-scan-id="{{ scan.id if scan else '' }}"
+         data-finding-index="{{ finding_index if finding_index is not none else '' }}">
+        {% if not ai_configured %}
+        <div class="assistant-config-note" role="status">AI is not configured. The basic scanner, reports, and dashboard remain available. Set <code>AI_API_KEY</code> in the server environment to enable provider-backed explanations. Provider use may have separate costs.</div>
+        {% endif %}
+        <div id="assistant-messages" class="assistant-messages" role="log" aria-live="polite">
+            <div class="chat-message assistant-message"><strong>Security Assistant</strong><p>I can explain recorded observations and suggest defensive verification steps. What would you like to understand?</p></div>
+        </div>
+        <div class="suggested-questions" aria-label="Suggested questions">
+            <button type="button">Explain my scan results.</button>
+            <button type="button">What is the most important issue?</button>
+            <button type="button">How do I fix this finding?</button>
+            <button type="button">Explain this issue in simple English.</button>
+            <button type="button">Explain this issue in Hindi or Hinglish.</button>
+            <button type="button">How do I verify that the fix worked?</button>
+            <button type="button">Why is this issue risky?</button>
+        </div>
+        <form id="assistant-form" class="assistant-form">
+            <label class="visually-hidden" for="assistant-question">Ask a security question</label>
+            <textarea id="assistant-question" name="question" maxlength="1000" rows="3" placeholder="Ask about the scan evidence…" required></textarea>
+            <div class="assistant-form-actions"><small>Maximum 1,000 characters. Messages are not stored by this application.</small><button class="button button-primary" type="submit">Send question <span>↗</span></button></div>
+        </form>
+        <button id="assistant-clear" class="button button-small button-ghost" type="button">Clear conversation</button>
+        <p id="assistant-status" class="assistant-status" role="status" aria-live="polite"></p>
+    </div>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/assistant.js') }}" defer></script>{% endblock %}

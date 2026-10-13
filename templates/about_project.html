@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}About the Project — Web Vulnerability Scanner{% endblock %}
+{% block breadcrumb %}About the Project{% endblock %}
+{% block content %}
+<section class="section-block static-page about-project">
+    <div class="section-header page-info-header">
+        <p class="eyebrow"><span></span>PROJECT DOCUMENTATION</p>
+        <h1>About the Project</h1>
+        <p class="section-lead">A practical, read-only web security assessment tool that turns observed HTTP response signals into findings, guidance, and reports.</p>
+        <a class="button button-primary" href="{{ url_for('scanner') }}">Start Security Scan <span>↗</span></a>
+    </div>
+
+    <article class="info-card">
+        <h2>Project overview</h2>
+        <p>A web vulnerability scanner checks selected web responses for common security configuration problems and suspicious indicators. This application accepts one authorized HTTP or HTTPS target, performs bounded read-only requests, records the primary response's findings, calculates a risk score, and presents the saved assessment in a dashboard and downloadable PDF.</p>
+    </article>
+    <article class="info-card">
+        <h2>Why we built this project</h2>
+        <p>Missing browser security policies, unsafe cookie attributes, overly broad CORS settings, and accidental information disclosure are easy to overlook during development. Early, repeatable checks can help site owners notice these conditions and prioritize a manual review before deployment or after a configuration change.</p>
+    </article>
+    <article class="info-card">
+        <h2>Project objectives</h2>
+        <ul class="info-list">
+            <li>Provide clear, bounded checks for common HTTP/HTTPS configuration signals.</li>
+            <li>Show the actual evidence, severity, confidence, and remediation returned by the scanner.</li>
+            <li>Keep scan history in the existing SQLite store and generate a report tied to its scan ID.</li>
+            <li>Support responsible use and make the limits of automated testing clear.</li>
+        </ul>
+    </article>
+    <article class="info-card">
+        <h2>How the project works</h2>
+        <ol class="info-list">
+            <li>The user enters an HTTP or HTTPS website URL and confirms they are authorized to assess it.</li>
+            <li>URL validation rejects malformed targets, embedded credentials, and local/private destinations by default.</li>
+            <li>The scanner makes bounded requests with timeouts, redirect validation, a response-size cap, and same-origin discovery limits.</li>
+            <li>Implemented checks inspect the primary final response's headers, cookies, TLS certificate handshake (for HTTPS), and bounded response body.</li>
+            <li>Findings include severity, confidence, evidence, category, remediation, and the scanner's OWASP mapping. Pattern matches are signals, not proof of exploitability.</li>
+            <li>The existing risk method subtracts 35 points for each high, 15 for each medium, and 5 for each low finding from 100, with a minimum score of 0.</li>
+            <li>The dashboard displays saved scan history and findings.</li>
+            <li>A PDF is generated and stored against the scan ID after a successful scan; a download can retry generation if needed.</li>
+            <li>If an AI provider is configured, the optional assistant can explain sanitized scan context. Otherwise the scanner and reports continue to work without AI.</li>
+        </ol>
+    </article>
+    <article class="info-card">
+        <h2>Implemented modules</h2>
+        <ul class="info-list">
+            <li><strong>URL validation and scope:</strong> HTTP/HTTPS scheme checks, credential rejection, local/private-address blocking, redirect destination validation, and bounded same-origin URL discovery. Same-origin links can be discovered, but those pages are not separately evaluated for findings.</li>
+            <li><strong>HTTP/HTTPS and response analysis:</strong> bounded request timeouts, response limits, redirect caps, and read-only inspection of the primary response.</li>
+            <li><strong>Security headers and cookies:</strong> selected response security headers and Set-Cookie attributes are checked. Cookie values are not included in findings.</li>
+            <li><strong>TLS and CORS:</strong> standard certificate validation is attempted for HTTPS; CORS checks detect wildcard or null allow-origin values.</li>
+            <li><strong>Information disclosure and patterns:</strong> selected server/framework headers and non-executing patterns for possible XSS, SQL-like output, and directory listings are inspected. These heuristics can be false positives.</li>
+            <li><strong>Findings and risk score:</strong> evidence is mapped to severity, confidence, remediation, and an existing OWASP category; the scoring formula is described above.</li>
+            <li><strong>Database and dashboard:</strong> SQLite stores scan metadata, findings, and generated PDF bytes. Scan history is shown in the dashboard.</li>
+            <li><strong>PDF reporting:</strong> paginated reports contain scan metadata, methodology, score, severity-grouped findings, evidence, remediation, verification advice, and limitations. Common secret-bearing fields are redacted.</li>
+            <li><strong>AI Security Assistant:</strong> optional server-side, OpenAI-compatible chat API configuration. Only a limited, sanitized scan context is sent; chat is held in browser memory and is not stored by this app.</li>
+        </ul>
+    </article>
+    <article class="info-card">
+        <h2>Technology stack</h2>
+        <p>Python and Flask power the application and routes; SQLite (Python's standard library) stores records; Requests performs HTTP checks; ReportLab creates PDFs; and HTML, CSS, and JavaScript provide the responsive interface. Waitress serves the application in the included production startup configuration, and pytest runs the test suite.</p>
+    </article>
+    <article class="info-card">
+        <h2>Importance in cybersecurity</h2>
+        <p>The dashboard helps website owners understand selected observable security signals, see why they may matter, and plan defensive configuration changes. Reports are starting points for review, not certifications or substitutes for a security assessment by qualified professionals.</p>
+    </article>
+    <article class="info-card">
+        <h2>Limitations</h2>
+        <p>Automated checks cannot guarantee that a website is secure. This tool does not authenticate, exploit vulnerabilities, submit forms, assess application business logic, capture packets, or independently analyze every discovered page. It is a web vulnerability scanner, not a network intrusion detection system. Some results are heuristic and may be false positives or false negatives. On Render Free, SQLite and generated reports are on ephemeral storage and can be lost after a restart or redeploy.</p>
+    </article>
+    <article class="info-card">
+        <h2>Ethical usage</h2>
+        <p>Scan only websites you own or are explicitly authorized to test. You are responsible for obtaining permission and complying with applicable laws and agreements. The scanner is intentionally read-only and bounded.</p>
+    </article>
+</section>
+{% endblock %}

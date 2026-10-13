@@ -33,6 +33,13 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS generated_reports (
+    scan_id INTEGER PRIMARY KEY,
+    pdf BLOB NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (scan_id) REFERENCES scans(id) ON DELETE CASCADE
+);
+
 CREATE INDEX IF NOT EXISTS idx_scans_scanned_at ON scans(scanned_at DESC);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 """
@@ -103,12 +110,15 @@ class ScanStore:
     def get_scan(self, scan_id: str) -> dict[str, Any] | None:
         try:
             scan_id_int = int(scan_id)
-        except ValueError:
+        except (ValueError, OverflowError):
             return None
-        with self._connect() as connection:
-            row = connection.execute(
-                "SELECT * FROM scans WHERE id = ?", (scan_id_int,)
-            ).fetchone()
+        try:
+            with self._connect() as connection:
+                row = connection.execute(
+                    "SELECT * FROM scans WHERE id = ?", (scan_id_int,)
+                ).fetchone()
+        except OverflowError:
+            return None
         if row is None:
             return None
         return self._row_to_dict(row)
@@ -119,6 +129,25 @@ class ScanStore:
                 "SELECT * FROM scans ORDER BY scanned_at DESC LIMIT ?", (limit,)
             ).fetchall()
         return [self._row_to_dict(row) for row in rows]
+
+    def save_report(self, scan_id: int, pdf: bytes) -> None:
+        created_at = datetime.now(timezone.utc).isoformat()
+        with self._connect() as connection:
+            connection.execute(
+                """
+                INSERT OR IGNORE INTO generated_reports (scan_id, pdf, created_at)
+                VALUES (?, ?, ?)
+                """,
+                (scan_id, sqlite3.Binary(pdf), created_at),
+            )
+
+    def get_report(self, scan_id: int) -> bytes | None:
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT pdf FROM generated_reports WHERE scan_id = ?",
+                (scan_id,),
+            ).fetchone()
+        return bytes(row["pdf"]) if row is not None else None
 
     def create_user(
         self,

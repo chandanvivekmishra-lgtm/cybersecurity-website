@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import logging
+import json
 import re
-from datetime import datetime
 from pathlib import Path
 
 import csv
@@ -13,8 +13,15 @@ import io
 from flask import Flask, Response, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from assistant import AssistantProviderError, request_explanation
 from config import Config
 from database import get_db, initialize_database
+from reporting import (
+    build_pdf_report,
+    redact_scan_data,
+    redact_sensitive_text,
+    redact_url,
+)
 from scanner import ScanError, scan_target
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -63,7 +70,10 @@ def scanner():
 @app.get("/dashboard")
 def dashboard():
     """Render the latest scan history dashboard."""
-    scans = get_db(app.config["DATABASE_PATH"]).fetch_recent_scans(limit=10)
+    scans = [
+        redact_scan_data(scan)
+        for scan in get_db(app.config["DATABASE_PATH"]).fetch_recent_scans(limit=10)
+    ]
     total_findings = sum(len(scan["findings"]) for scan in scans)
     high_risk_findings = sum(
         1
@@ -84,6 +94,12 @@ def dashboard():
         average_score=average_score,
         severity_counts=severity_counts,
     )
+
+
+@app.get("/scan-history")
+def scan_history():
+    """Render the saved scan history using the existing dashboard."""
+    return dashboard()
 
 
 @app.get("/contact")
@@ -272,32 +288,158 @@ def admin_dashboard():
 
 @app.get("/about")
 def about():
-    """Render the About Us page."""
+    """Render an implementation-accurate project overview."""
+    return render_template("about_project.html")
+
+
+@app.get("/assistant")
+def assistant_page():
+    """Render the optional AI assistant for a saved scan."""
+    scan_id = request.args.get("scan_id", "").strip()
+    scan = get_db(app.config["DATABASE_PATH"]).get_scan(scan_id) if scan_id else None
+    if scan_id and scan is None:
+        return render_template("error.html", message="Scan not found."), 404
+    if scan is not None:
+        scan = redact_scan_data(scan)
+
+    finding_index = request.args.get("finding", "")
+    if finding_index:
+        try:
+            finding_index_value = int(finding_index)
+        except ValueError:
+            return render_template("error.html", message="Finding not found."), 404
+        if (
+            scan is None
+            or finding_index_value < 0
+            or finding_index_value >= len(scan["findings"])
+        ):
+            return render_template("error.html", message="Finding not found."), 404
+    else:
+        finding_index_value = None
     return render_template(
-        "legal_page.html",
-        title="About Us",
-        subtitle="Developed by Chandan Vivekanand Mishra",
-        intro="This website is designed to help authorized users assess the security posture of web applications using a focused, read-only vulnerability scanning workflow.",
-        bullets=[
-            "The platform is built to support responsible security testing for websites and digital assets that the owner has permission to assess.",
-            "The scanner inspects common web configuration issues such as missing security headers, insecure cookies, weak HTTP policies, and same-origin discovery patterns.",
-            "This project was developed by Chandan Vivekanand Mishra and is intended to provide a professional, practical security assessment dashboard.",
-        ],
-        sections=[
-            {
-                "heading": "Our purpose",
-                "text": "The platform demonstrates how a lightweight security scan can detect common weaknesses in a readable, actionable format. It helps security teams, developers, and owners review findings, understand risk, and apply recommended hardening steps.",
-            },
-            {
-                "heading": "Mission",
-                "text": "To deliver a simple, secure, and responsible scanning experience that prioritizes transparency, safety, and practical remediation guidance for authorized web assessments.",
-            },
-            {
-                "heading": "Developer credit",
-                "text": "Developed by Chandan Vivekanand Mishra. This project reflects a modern security dashboard approach focused on utility, clarity, and professional reporting.",
-            },
-        ],
+        "assistant.html",
+        scan=scan,
+        finding_index=finding_index_value,
+        ai_configured=bool(app.config.get("AI_API_KEY")),
     )
+
+
+def _assistant_context(scan: dict | None, finding_index: int | None) -> str:
+    """Serialize only the scan fields needed to explain the user's findings."""
+    if scan is None:
+        return json.dumps(
+            {
+                "project": "Web Vulnerability Scanner",
+                "scope": "Bounded, read-only HTTP/HTTPS response checks.",
+            },
+            ensure_ascii=True,
+        )
+
+    findings = scan.get("findings", [])
+    if finding_index is not None:
+        findings = [findings[finding_index]]
+    safe_findings = []
+    for finding in findings[:50]:
+        safe_findings.append(
+            {
+                key: redact_sensitive_text(finding.get(key, ""), limit=1000)
+                for key in (
+                    "code",
+                    "message",
+                    "severity",
+                    "confidence",
+                    "category",
+                    "evidence",
+                    "remediation",
+                    "owasp",
+                )
+            }
+        )
+    context = {
+        "scan_id": scan.get("id"),
+        "target": redact_url(scan.get("target", "")),
+        "final_url": redact_url(scan.get("final_url") or scan.get("target", "")),
+        "status": scan.get("status"),
+        "score": scan.get("score"),
+        "risk_level": scan.get("risk_level") or scan.get("severity"),
+        "summary": redact_sensitive_text(scan.get("summary", ""), limit=1000),
+        "findings": safe_findings,
+        "scope_note": (
+            "Findings describe observed signals in the primary response; heuristic findings "
+            "are not proof of exploitability. Discovered pages are not independently assessed."
+        ),
+    }
+    return json.dumps(context, ensure_ascii=True)
+
+
+@app.post("/api/assistant")
+def assistant_api():
+    """Explain a user's question using optional provider access and saved scan evidence."""
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        return {"error": "Submit the question as JSON."}, 400
+    question = payload.get("question", "")
+    if not isinstance(question, str) or not question.strip():
+        return {"error": "Enter a question for the Security Assistant."}, 400
+    question = question.strip()
+    if len(question) > 1000:
+        return {"error": "Questions must be 1,000 characters or fewer."}, 400
+
+    scan_id = str(payload.get("scan_id", "")).strip()
+    scan = get_db(app.config["DATABASE_PATH"]).get_scan(scan_id) if scan_id else None
+    if scan_id and scan is None:
+        return {"error": "Scan not found."}, 404
+
+    finding_index = payload.get("finding_index")
+    if finding_index is not None:
+        try:
+            finding_index = int(finding_index)
+        except (TypeError, ValueError):
+            return {"error": "Finding not found."}, 404
+        if scan is None or not 0 <= finding_index < len(scan["findings"]):
+            return {"error": "Finding not found."}, 404
+
+    if not app.config.get("AI_API_KEY"):
+        return {
+            "configured": False,
+            "message": (
+                "The AI Security Assistant is not configured yet. The scanner, reports, and "
+                "dashboard remain available. To enable AI explanations, set AI_API_KEY and "
+                "optionally AI_API_BASE_URL and AI_MODEL in the server environment."
+            ),
+        }
+
+    raw_history = payload.get("history", [])
+    if not isinstance(raw_history, list):
+        return {"error": "Conversation history is invalid."}, 400
+    history = []
+    for item in raw_history[-8:]:
+        if not isinstance(item, dict) or item.get("role") not in {"user", "assistant"}:
+            continue
+        content = item.get("content")
+        if isinstance(content, str) and content.strip():
+            history.append(
+                {
+                    "role": item["role"],
+                    "content": redact_sensitive_text(content, limit=1000),
+                }
+            )
+
+    try:
+        answer = request_explanation(
+            api_key=app.config["AI_API_KEY"],
+            base_url=app.config["AI_API_BASE_URL"],
+            model=app.config["AI_MODEL"],
+            question=question,
+            context=_assistant_context(scan, finding_index),
+            history=history,
+        )
+    except AssistantProviderError:
+        logger.warning("AI assistant provider request failed.")
+        return {
+            "error": "The AI Assistant is temporarily unavailable. Your scan and reports are unaffected."
+        }, 502
+    return {"configured": True, "message": answer}
 
 
 @app.get("/security-policy")
@@ -523,7 +665,13 @@ def report(scan_id: str):
     scan = get_db(app.config["DATABASE_PATH"]).get_scan(scan_id)
     if scan is None:
         return render_template("error.html", message="Scan not found."), 404
-    return render_template("report.html", scan=scan)
+    scan = redact_scan_data(scan)
+    report_available = get_db(app.config["DATABASE_PATH"]).get_report(int(scan["id"])) is not None
+    return render_template(
+        "report.html",
+        scan=scan,
+        report_available=report_available,
+    )
 
 
 @app.get("/api/reports/<scan_id>.json")
@@ -532,20 +680,23 @@ def report_json(scan_id: str):
     scan = get_db(app.config["DATABASE_PATH"]).get_scan(scan_id)
     if scan is None:
         return {"error": "Scan not found."}, 404
-    return scan
+    return redact_scan_data(scan)
 
 
 @app.get("/api/reports/export.json")
 def export_reports_json():
     """Export all saved reports as JSON."""
     scans = get_db(app.config["DATABASE_PATH"]).fetch_recent_scans(limit=1000)
-    return scans
+    return [redact_scan_data(scan) for scan in scans]
 
 
 @app.get("/api/reports/export.csv")
 def export_reports_csv():
     """Export all saved reports as CSV."""
-    scans = get_db(app.config["DATABASE_PATH"]).fetch_recent_scans(limit=1000)
+    scans = [
+        redact_scan_data(scan)
+        for scan in get_db(app.config["DATABASE_PATH"]).fetch_recent_scans(limit=1000)
+    ]
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow(["target", "score", "final_url", "status", "severity", "risk_level", "scanned_at", "findings", "id"])
@@ -569,101 +720,39 @@ def export_reports_csv():
     )
 
 
-def _pdf_escape(value: str) -> str:
-    """Escape text for use in a PDF literal string."""
-    return value.encode("latin-1", errors="replace").decode("latin-1").replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+def _stored_or_generated_pdf(scan: dict) -> bytes:
+    store = get_db(app.config["DATABASE_PATH"])
+    scan_id = int(scan["id"])
+    pdf = store.get_report(scan_id)
+    if pdf is not None:
+        return pdf
+    store.save_report(scan_id, build_pdf_report(scan))
+    pdf = store.get_report(scan_id)
+    if pdf is None:
+        raise RuntimeError("The generated report was not stored.")
+    return pdf
 
 
-def _wrap_pdf_text(value: str, width: int = 82) -> list[str]:
-    """Wrap a PDF text line without splitting words unnecessarily."""
-    words = value.split()
-    lines: list[str] = []
-    current = ""
-    for word in words:
-        candidate = f"{current} {word}".strip()
-        if len(candidate) > width and current:
-            lines.append(current)
-            current = word
-        else:
-            current = candidate
-    if current:
-        lines.append(current)
-    return lines
-
-
-def _build_pdf(scan: dict) -> bytes:
-    """Build a small, self-contained PDF report without a third-party dependency."""
-    generated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    finding_lines = [
-        f"- {item.get('code', 'finding')}: {item.get('message', '')}"
-        for item in scan.get("findings", [])
-    ] or ["No findings detected."]
-    lines = [
-        "Security Assessment Report",
-        f"Generated: {generated_at}",
-        f"Target: {scan.get('target', 'unknown')}",
-        f"Score: {scan.get('score', 0)}/100",
-        f"Risk: {scan.get('risk_level', scan.get('severity', 'low'))}",
-        f"Findings: {len(scan.get('findings', []))}",
-        "",
-        *finding_lines,
-    ]
-    content_lines = ["BT", "/F1 18 Tf", "50 790 Td"]
-    y = 790
-    for line_number, line in enumerate(lines):
-        if line_number == 0:
-            content_lines.append(f"({ _pdf_escape(line) }) Tj")
-            y -= 26
-            continue
-        if line_number == 1:
-            content_lines.extend(["/F1 11 Tf", f"(Generated: {_pdf_escape(line)}) Tj"])
-            y -= 22
-            continue
-        if line_number == 6:
-            content_lines.append(f"({ _pdf_escape(line)}) Tj")
-            y -= 18
-            continue
-        if line_number == 7:
-            y -= 18
-            continue
-        for wrapped_line in _wrap_pdf_text(line):
-            content_lines.extend([f"{50} {y} Td", f"({_pdf_escape(wrapped_line)}) Tj"])
-            y -= 14
-            if y < 70:
-                break
-        if y < 70:
-            break
-    content_lines.extend(["ET"])
-    content = "\n".join(content_lines).encode("latin-1")
-
-    objects = [
-        b"<< /Type /Catalog /Pages 2 0 R >>",
-        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
-        b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>",
-        f"<< /Length {len(content)} >>\nstream\n".encode("latin-1") + content + b"\nendstream",
-        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
-    ]
-    pdf_parts = [b"%PDF-1.4\n"]
-    offsets = [0]
-    for index, obj in enumerate(objects, start=1):
-        offsets.append(len(b"".join(pdf_parts)))
-        pdf_parts.append(f"{index} 0 obj\n".encode("latin-1") + obj + b"\nendobj\n")
-    xref_offset = len(b"".join(pdf_parts))
-    xref_lines = ["xref", f"0 {len(objects) + 1}", "0000000000 65535 f "]
-    xref_lines.extend(f"{offset:010d} 00000 n " for offset in offsets[1:])
-    pdf_parts.append("\n".join(xref_lines).encode("latin-1"))
-    pdf_parts.append(f"trailer\n<< /Root 1 0 R /Size {len(objects) + 1} >>\nstartxref\n{xref_offset}\n%%EOF\n".encode("latin-1"))
-    return b"".join(pdf_parts)
-
-
-@app.get("/reports/<scan_id>/download.pdf")
-def pdf_report(scan_id: str):
-    """Generate a downloadable PDF export for a saved scan."""
+@app.get("/reports/<int:scan_id>/download.pdf")
+def pdf_report(scan_id: int):
+    """Download only the report associated with an existing scan identifier."""
     scan = get_db(app.config["DATABASE_PATH"]).get_scan(scan_id)
     if scan is None:
         return {"error": "Scan not found."}, 404
-    pdf = _build_pdf(scan)
-    return Response(pdf, mimetype="application/pdf", headers={"Content-Disposition": f"attachment; filename={scan_id}.pdf"})
+    try:
+        pdf = _stored_or_generated_pdf(scan)
+    except Exception:
+        logger.exception("PDF report generation failed for scan %s", scan_id)
+        return {
+            "error": "The scan is saved, but its PDF report could not be generated. Please try again."
+        }, 503
+    return Response(
+        pdf,
+        mimetype="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="security-assessment-{scan_id}.pdf"'
+        },
+    )
 
 
 @app.post("/api/scan")
@@ -672,16 +761,37 @@ def scan_api():
     target = request.form.get("target", "").strip()
     if not target:
         return {"error": "A target URL is required."}, 400
+    if request.form.get("authorization_confirmed") != "yes":
+        return {
+            "error": "Confirm that you own or are explicitly authorized to test this website."
+        }, 400
 
     try:
         result = scan_target(target)
-        scan_id = get_db(app.config["DATABASE_PATH"]).save_scan(result)
+        if result.get("status") != "completed":
+            return {
+                "error": result.get("error_message")
+                or "The scan did not complete; no report was generated."
+            }, 502
+        result = redact_scan_data(result)
+        store = get_db(app.config["DATABASE_PATH"])
+        scan_id = store.save_scan(result)
+        saved_scan = store.get_scan(str(scan_id))
+        if saved_scan is None:
+            raise RuntimeError("The completed scan could not be retrieved.")
+        report_available = True
+        try:
+            _stored_or_generated_pdf(saved_scan)
+        except Exception:
+            report_available = False
+            logger.exception("Automatic PDF generation failed for scan %s", scan_id)
         return {
             "scan_id": scan_id,
             "target": result["target"],
             "status": result["status"],
             "score": result["score"],
             "summary": result["summary"],
+            "report_available": report_available,
         }, 201
     except ScanError as exc:
         logger.warning("Rejected scan request: %s", exc)

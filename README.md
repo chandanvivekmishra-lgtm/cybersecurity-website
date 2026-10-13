@@ -9,24 +9,23 @@ A Python-based Flask security assessment dashboard for authorized web testing. T
 ```text
 .
 ├── app.py
+├── assistant.py
 ├── config.py
 ├── database.py
+├── reporting.py
 ├── scanner.py
 ├── requirements.txt
 ├── .env.example
-├── .gitignore
-├── Dockerfile
-├── .dockerignore
 ├── static/
 │   ├── css/style.css
-│   └── js/dashboard.js
+│   └── js/
 ├── templates/
+│   ├── about_project.html
+│   ├── assistant.html
 │   ├── base.html
-│   ├── index.html
-│   ├── scanner.html
 │   ├── dashboard.html
 │   ├── report.html
-│   └── error.html
+│   └── scanner.html
 └── tests/test_app.py
 ```
 
@@ -101,6 +100,24 @@ pytest -q
 ## Configuration
 
 Set the values shown in `.env.example` in the process environment before starting the app (or use a dotenv loader in your deployment). Set a unique, random `SECRET_KEY` and configure `ADMIN_USERNAME` and `ADMIN_PASSWORD`; the admin login is disabled if its credentials are not configured. Do not commit your `.env` file. Local, private, and link-local targets are blocked unless `ALLOW_LOCAL_TARGETS=1` is set.
+
+## Assessment reports
+
+The scanner requires users to confirm that they own the submitted site or have explicit permission to assess it. Successful scans are saved in SQLite and a paginated PDF is generated automatically and associated with that scan ID. The report download can safely retry generation if it previously failed; it only accepts an existing numeric scan ID and does not read arbitrary filesystem paths. If PDF generation fails, saved scan findings remain available and the report page explains that the download can be retried.
+
+The score starts at 100 and subtracts 35 points for each high-severity finding, 15 for each medium finding, and 5 for each low finding, to a minimum of 0. Risk levels are low (80–100), medium (60–79), high (40–59), and critical (0–39). This is a project-specific prioritization score, not a compliance rating.
+
+The scanner checks the primary final response's selected security headers, cookies, transport, TLS certificate handshake, CORS values, selected disclosure headers, and bounded response-body patterns. Same-origin links can be discovered to depth 1 and a maximum of 10 pages, but those discovered pages are not independently analyzed. Pattern-based XSS and SQL-text findings are heuristic signals, not proof of exploitable vulnerabilities. The About the Project page describes the implemented scope and limitations in more detail.
+
+## Optional AI Security Assistant
+
+The assistant is optional; scanning, the dashboard, and PDF reporting work without an AI API key. To enable provider-backed explanations, set these server environment variables (Render: **Dashboard → service → Environment**):
+
+- `AI_API_KEY`: secret API key for your chosen compatible provider
+- `AI_API_BASE_URL`: provider's OpenAI-compatible API base URL (default `https://api.openai.com/v1`)
+- `AI_MODEL`: model identifier accepted by that provider (default `gpt-4o-mini`)
+
+Keep keys in the server environment; never put them in frontend code or commit them. Provider requests include only the current question, a limited recent in-memory conversation, and sanitized metadata/evidence from the selected scan or finding. Raw response bodies, cookies, passwords, and tokens are not intentionally sent. Conversations are not stored by this application. External provider availability, terms, and possible usage charges are separate from hosting; no AI provider is required for the basic scanner.
 
 ## Included functionality
 

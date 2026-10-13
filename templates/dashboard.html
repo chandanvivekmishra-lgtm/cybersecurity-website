@@ -11,7 +11,7 @@
         <article class="metric-card"><div class="metric-label"><span>SEVERITY MIX</span><b>ISSUES</b></div><strong>{{ severity_counts.high + severity_counts.medium + severity_counts.low }}</strong><small>High {{ severity_counts.high }} · Medium {{ severity_counts.medium }} · Low {{ severity_counts.low }}</small></article>
     </div>
     <div class="table-card">
-        <div class="table-header"><div><h2>Recent assessments</h2><p>Scan records are stored locally in SQLite.</p></div><div class="header-actions"><a class="button button-small button-ghost" href="{{ url_for('export_reports_csv') }}">Export CSV</a><a class="button button-small button-primary" href="{{ url_for('export_reports_json') }}">Export JSON</a><span class="table-count" id="table-count">{{ scans|length }} RECORDS</span></div></div>
+        <div class="table-header"><div><h2>Recent assessments</h2><p>Scan records are stored in {{ history_storage }}.</p></div><div class="header-actions"><a class="button button-small button-ghost" href="{{ url_for('export_reports_csv') }}">Export CSV</a><a class="button button-small button-primary" href="{{ url_for('export_reports_json') }}">Export JSON</a><span class="table-count" id="table-count">{{ scans|length }} RECORDS</span></div></div>
         {% if scans %}
         <div class="dashboard-filters">
             <input id="dashboard-search" type="search" placeholder="Filter by target, URL or code" aria-label="Filter assessments">

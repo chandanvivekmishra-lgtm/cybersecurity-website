@@ -172,6 +172,31 @@ def test_dashboard_export_endpoints(tmp_path):
     assert isinstance(json_response.get_json(), list)
 
 
+def test_scan_history_shows_configured_storage_backend(monkeypatch):
+    import app as app_module
+
+    class EmptyStore:
+        @staticmethod
+        def fetch_recent_scans(limit):
+            del limit
+            return []
+
+    def empty_store(location):
+        del location
+        return EmptyStore()
+
+    monkeypatch.setattr(app_module, "get_db", empty_store)
+    client = app.test_client()
+
+    monkeypatch.setitem(app.config, "DATABASE_URL", "postgresql://db.example/scanner")
+    postgres_response = client.get("/scan-history")
+    assert b"configured PostgreSQL database" in postgres_response.data
+
+    monkeypatch.setitem(app.config, "DATABASE_URL", "")
+    sqlite_response = client.get("/scan-history")
+    assert b"local SQLite" in sqlite_response.data
+
+
 def test_contact_form_and_admin_login_flow(monkeypatch):
     test_username = "test-admin"
     import secrets

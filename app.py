@@ -80,6 +80,11 @@ def dashboard():
         redact_scan_data(scan)
         for scan in get_db(_database_location()).fetch_recent_scans(limit=10)
     ]
+    history_storage = (
+        "the configured PostgreSQL database"
+        if app.config.get("DATABASE_URL")
+        else "local SQLite"
+    )
     total_findings = sum(len(scan["findings"]) for scan in scans)
     high_risk_findings = sum(
         1
@@ -99,6 +104,7 @@ def dashboard():
         high_risk_findings=high_risk_findings,
         average_score=average_score,
         severity_counts=severity_counts,
+        history_storage=history_storage,
     )
 
 

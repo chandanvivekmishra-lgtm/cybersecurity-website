@@ -304,6 +304,12 @@ def about():
     return render_template("about_project.html")
 
 
+@app.get("/how-to-use")
+def how_to_use():
+    """Render the practical guide to using the scanner."""
+    return render_template("how_to_use.html")
+
+
 @app.get("/assistant")
 def assistant_page():
     """Render the optional AI assistant for a saved scan."""

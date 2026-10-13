@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 680" fill="none">
+  <defs>
+    <linearGradient id="panel" x1="112" y1="63" x2="850" y2="600" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#162A2B"/>
+      <stop offset="1" stop-color="#0B1718"/>
+    </linearGradient>
+    <linearGradient id="shield" x1="704" y1="116" x2="824" y2="280" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D9F98C"/>
+      <stop offset="1" stop-color="#9DD43B"/>
+    </linearGradient>
+    <filter id="shadow" x="49" y="43" width="872" height="602" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feColorMatrix in="SourceAlpha" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+      <feOffset dy="18"/>
+      <feGaussianBlur stdDeviation="20"/>
+      <feComposite in2="hardAlpha" operator="out"/>
+      <feColorMatrix values="0 0 0 0 0.043 0 0 0 0 0.09 0 0 0 0 0.094 0 0 0 0.22 0"/>
+      <feBlend in2="BackgroundImageFix" result="effect1_dropShadow"/>
+      <feBlend in="SourceGraphic" in2="effect1_dropShadow" result="shape"/>
+    </filter>
+  </defs>
+  <circle cx="480" cy="340" r="292" fill="#C9F36B" fill-opacity=".13"/>
+  <circle cx="480" cy="340" r="234" stroke="#9DD43B" stroke-opacity=".3" stroke-dasharray="3 12"/>
+  <g filter="url(#shadow)">
+    <rect x="89" y="83" width="782" height="502" rx="18" fill="url(#panel)"/>
+    <rect x="89.75" y="83.75" width="780.5" height="500.5" rx="17.25" stroke="#355052" stroke-width="1.5"/>
+    <path d="M90 101a18 18 0 0 1 18-18h746a18 18 0 0 1 18 18v43H90v-43Z" fill="#203638"/>
+    <circle cx="119" cy="114" r="6" fill="#F56F61"/>
+    <circle cx="140" cy="114" r="6" fill="#F0BB52"/>
+    <circle cx="161" cy="114" r="6" fill="#C9F36B"/>
+    <rect x="246" y="101" width="466" height="27" rx="6" fill="#132729"/>
+    <circle cx="263" cy="114" r="4" fill="#9DD43B"/>
+    <path d="M277 114h157" stroke="#708381" stroke-linecap="round" stroke-width="5"/>
+    <rect x="119" y="176" width="458" height="372" rx="10" fill="#F8F8F1"/>
+    <rect x="145" y="202" width="167" height="10" rx="5" fill="#B8C1B8"/>
+    <rect x="145" y="230" width="359" height="4" rx="2" fill="#DFE3DA"/>
+    <rect x="145" y="256" width="182" height="16" rx="8" fill="#192B2C"/>
+    <rect x="145" y="287" width="385" height="1" fill="#D6DCD3"/>
+    <circle cx="161" cy="319" r="9" fill="#E7F4D0"/>
+    <path d="m157 319 3 3 6-7" stroke="#55871F" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+    <rect x="183" y="315" width="121" height="7" rx="3.5" fill="#61706B"/>
+    <rect x="450" y="311" width="63" height="16" rx="8" fill="#E6F4D0"/>
+    <rect x="465" y="317" width="33" height="4" rx="2" fill="#63942B"/>
+    <rect x="145" y="349" width="385" height="1" fill="#D6DCD3"/>
+    <circle cx="161" cy="381" r="9" fill="#FFF0CE"/>
+    <path d="M161 376v6m0 3v.1" stroke="#AA7117" stroke-linecap="round" stroke-width="2"/>
+    <rect x="183" y="377" width="158" height="7" rx="3.5" fill="#61706B"/>
+    <rect x="450" y="373" width="63" height="16" rx="8" fill="#FFF0CE"/>
+    <rect x="465" y="379" width="33" height="4" rx="2" fill="#A46D16"/>
+    <rect x="145" y="411" width="385" height="1" fill="#D6DCD3"/>
+    <circle cx="161" cy="443" r="9" fill="#E7F4D0"/>
+    <path d="m157 443 3 3 6-7" stroke="#55871F" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+    <rect x="183" y="439" width="132" height="7" rx="3.5" fill="#61706B"/>
+    <rect x="450" y="435" width="63" height="16" rx="8" fill="#E6F4D0"/>
+    <rect x="465" y="441" width="33" height="4" rx="2" fill="#63942B"/>
+    <rect x="145" y="473" width="385" height="1" fill="#D6DCD3"/>
+    <rect x="145" y="495" width="182" height="29" rx="5" fill="#152728"/>
+    <path d="M159 510h89" stroke="#C9F36B" stroke-linecap="round" stroke-width="4"/>
+    <rect x="603" y="176" width="238" height="372" rx="10" fill="#132729"/>
+    <text x="627" y="209" fill="#9BAEAA" font-family="Arial,sans-serif" font-size="11" font-weight="700" letter-spacing="1.4">ASSESSMENT SCORE</text>
+    <circle cx="721" cy="296" r="58" stroke="#314A49" stroke-width="10"/>
+    <path d="M721 238a58 58 0 1 1-54 79" stroke="#C9F36B" stroke-linecap="round" stroke-width="10"/>
+    <text x="721" y="303" fill="#F5F7EF" font-family="Arial,sans-serif" font-size="28" font-weight="700" text-anchor="middle">87</text>
+    <text x="721" y="321" fill="#8FA19C" font-family="Arial,sans-serif" font-size="10" text-anchor="middle">OUT OF 100</text>
+    <rect x="627" y="385" width="190" height="1" fill="#314746"/>
+    <text x="627" y="414" fill="#9BAEAA" font-family="Arial,sans-serif" font-size="10" font-weight="700" letter-spacing="1.2">NEXT STEP</text>
+    <rect x="627" y="431" width="7" height="7" rx="3.5" fill="#C9F36B"/>
+    <text x="645" y="439" fill="#E5ECE4" font-family="Arial,sans-serif" font-size="12">Review evidence</text>
+    <rect x="627" y="458" width="7" height="7" rx="3.5" fill="#C9F36B"/>
+    <text x="645" y="466" fill="#E5ECE4" font-family="Arial,sans-serif" font-size="12">Apply remediation</text>
+    <rect x="627" y="485" width="7" height="7" rx="3.5" fill="#C9F36B"/>
+    <text x="645" y="493" fill="#E5ECE4" font-family="Arial,sans-serif" font-size="12">Save PDF report</text>
+  </g>
+  <path d="m797 81 7 14 15 2-11 11 3 15-14-7-14 7 3-15-11-11 15-2 7-14Z" fill="url(#shield)"/>
+</svg>

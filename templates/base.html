@@ -26,10 +26,11 @@
                 <a href="{{ url_for('about') }}" class="nav-item {% if request.endpoint == 'about' %}active{% endif %}"><span>05</span>About the Project</a>
                 <a href="{{ url_for('assistant_page') }}" class="nav-item {% if request.endpoint in ['assistant_page', 'assistant_api'] %}active{% endif %}"><span>06</span>AI Security Assistant</a>
                 <a href="{{ url_for('website_information') }}" class="nav-item {% if request.endpoint == 'website_information' %}active{% endif %}"><span>07</span>Website Info</a>
-                <a href="{{ url_for('help_page') }}" class="nav-item {% if request.endpoint == 'help_page' %}active{% endif %}"><span>08</span>Help</a>
-                <a href="{{ url_for('faq') }}" class="nav-item {% if request.endpoint == 'faq' %}active{% endif %}"><span>09</span>FAQ</a>
-                <a href="{{ url_for('report_abuse') }}" class="nav-item {% if request.endpoint == 'report_abuse' %}active{% endif %}"><span>10</span>Report Abuse</a>
-                <a href="{{ url_for('login') }}" class="nav-item {% if request.endpoint in ['login', 'register', 'account'] %}active{% endif %}"><span>11</span>Account</a>
+                <a href="{{ url_for('how_to_use') }}" class="nav-item {% if request.endpoint == 'how_to_use' %}active{% endif %}"><span>08</span>How to Use</a>
+                <a href="{{ url_for('help_page') }}" class="nav-item {% if request.endpoint == 'help_page' %}active{% endif %}"><span>09</span>Help</a>
+                <a href="{{ url_for('faq') }}" class="nav-item {% if request.endpoint == 'faq' %}active{% endif %}"><span>10</span>FAQ</a>
+                <a href="{{ url_for('report_abuse') }}" class="nav-item {% if request.endpoint == 'report_abuse' %}active{% endif %}"><span>11</span>Report Abuse</a>
+                <a href="{{ url_for('login') }}" class="nav-item {% if request.endpoint in ['login', 'register', 'account'] %}active{% endif %}"><span>12</span>Account</a>
             </nav>
             <div class="sidebar-footer">
                 <span class="status-dot"></span>
@@ -52,6 +53,7 @@
                     <a href="{{ url_for('about') }}">About the Project</a>
                     <a href="{{ url_for('assistant_page') }}">AI Security Assistant</a>
                     <a href="{{ url_for('scan_history') }}">Scan History</a>
+                    <a href="{{ url_for('how_to_use') }}">How to Use</a>
                     <a href="{{ url_for('security_policy') }}">Security Policy</a>
                     <a href="{{ url_for('privacy_policy') }}">Privacy Policy</a>
                     <a href="{{ url_for('terms_and_conditions') }}">Terms &amp; Conditions</a>

@@ -126,6 +126,7 @@ def test_information_and_policy_pages():
         "/terms-and-conditions",
         "/website-information",
         "/help",
+        "/how-to-use",
     ]
     for route in routes:
         response = client.get(route)
@@ -136,6 +137,13 @@ def test_information_and_policy_pages():
 
     help_response = client.get("/help")
     assert b"chandanvivekmishra@gmail.com" in help_response.data
+
+    guide_response = client.get("/how-to-use")
+    assert b"Choose a site you are allowed to test" in guide_response.data
+    assert b"security-assessment.svg" in guide_response.data
+    illustration_response = client.get("/static/images/security-assessment.svg")
+    assert illustration_response.status_code == 200
+    assert b"<svg" in illustration_response.data
 
 
 def test_dashboard_export_endpoints(tmp_path):

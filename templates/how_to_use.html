@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}How to Use — Web Vulnerability Scanner{% endblock %}
+{% block breadcrumb %}How to Use{% endblock %}
+{% block content %}
+<section class="guide-page">
+    <div class="guide-hero">
+        <div class="guide-hero-copy">
+            <p class="eyebrow"><span></span>YOUR FIRST SECURITY REVIEW</p>
+            <h1>A clear path from <em>URL</em> to action.</h1>
+            <p class="hero-lead">Use this guide to run an authorized assessment, understand the results, and keep a copy of your report.</p>
+            <a class="button button-primary" href="{{ url_for('scanner') }}">Open the scanner <span>↗</span></a>
+        </div>
+        <div class="guide-hero-art">
+            <img src="{{ url_for('static', filename='images/security-assessment.svg') }}" alt="Illustration of a web security check and its results">
+        </div>
+    </div>
+
+    <div class="guide-steps" aria-label="Steps for using the website">
+        <article class="guide-step">
+            <span class="guide-step-number">01</span>
+            <div>
+                <p class="eyebrow"><span></span>BEFORE YOU BEGIN</p>
+                <h2>Choose a site you are allowed to test.</h2>
+                <p>Only assess a website you own or have explicit permission to test. The scanner accepts HTTP or HTTPS URLs and blocks private, loopback, and link-local destinations by default.</p>
+                <div class="guide-tip"><strong>Good to know</strong><span>This tool does not sign in to sites, submit credentials, exploit issues, or perform destructive tests.</span></div>
+            </div>
+        </article>
+
+        <article class="guide-step">
+            <span class="guide-step-number">02</span>
+            <div>
+                <p class="eyebrow"><span></span>RUN A SCAN</p>
+                <h2>Enter the target and confirm authorization.</h2>
+                <p>Open <a href="{{ url_for('scanner') }}">Scanner</a>, enter the full website URL, check the permission confirmation, and start the assessment. Requests have timeouts, redirect limits, and response-size limits.</p>
+                <div class="guide-tip"><strong>Stay in scope</strong><span>Do not scan systems outside your permission. A scan may take several seconds depending on the target response.</span></div>
+            </div>
+        </article>
+
+        <article class="guide-step">
+            <span class="guide-step-number">03</span>
+            <div>
+                <p class="eyebrow"><span></span>UNDERSTAND RESULTS</p>
+                <h2>Review each signal, not just the score.</h2>
+                <p>Read the severity, evidence, and suggested remediation on the report. Findings are automated signals and can be false positives or false negatives; verify them and test fixes yourself.</p>
+                <div class="guide-tip"><strong>Remember</strong><span>The score is a project-specific prioritization aid, not a certification or proof that a site is secure.</span></div>
+            </div>
+        </article>
+
+        <article class="guide-step">
+            <span class="guide-step-number">04</span>
+            <div>
+                <p class="eyebrow"><span></span>SAVE AND RETURN</p>
+                <h2>Download a report or revisit scan history.</h2>
+                <p>Use the report page to download a PDF. Open <a href="{{ url_for('scan_history') }}">Scan History</a> to review available assessments or export records as CSV or JSON.</p>
+                <div class="guide-tip"><strong>History storage</strong><span>On the hosted site, history survives service restarts only when a persistent PostgreSQL database has been configured. Without it, free-host SQLite data can be temporary.</span></div>
+            </div>
+        </article>
+    </div>
+
+    <section class="guide-next">
+        <div><p class="eyebrow"><span></span>READY WHEN YOU ARE</p><h2>Start with permission. Finish with a plan.</h2></div>
+        <a class="button button-primary" href="{{ url_for('scanner') }}">Start an assessment <span>↗</span></a>
+    </section>
+</section>
+{% endblock %}

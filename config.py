@@ -14,6 +14,7 @@ class Config:
     HOST = os.getenv("HOST", "127.0.0.1")
     PORT = int(os.getenv("PORT", "5000"))
     DEBUG = os.getenv("FLASK_DEBUG", "0") == "1"
+    DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
     ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
     ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
     AI_API_KEY = os.getenv("AI_API_KEY")
@@ -34,3 +35,7 @@ class Config:
     @staticmethod
     def database_path() -> Path:
         return Path(os.getenv("DATABASE_PATH", "database/scanner.db"))
+
+    @staticmethod
+    def database_location() -> str:
+        return Config.DATABASE_URL or str(Config.database_path())

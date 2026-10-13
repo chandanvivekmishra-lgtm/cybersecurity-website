@@ -861,6 +861,70 @@ def test_database_persists_and_retrieves_scan(tmp_path: Path):
     assert scan["findings"] == []
 
 
+def test_database_location_prefers_postgresql_url(monkeypatch, tmp_path: Path):
+    from config import Config
+
+    monkeypatch.setattr(Config, "DATABASE_URL", "postgresql://db.example/scanner")
+    monkeypatch.setenv("DATABASE_PATH", str(tmp_path / "scanner.db"))
+    assert Config.database_location() == "postgresql://db.example/scanner"
+
+    monkeypatch.setattr(Config, "DATABASE_URL", "")
+    assert Config.database_location() == str(tmp_path / "scanner.db")
+
+
+def test_postgresql_store_uses_driver_and_returns_generated_id(monkeypatch):
+    import sys
+    from types import ModuleType
+
+    from database import ScanStore
+
+    statements = []
+    connection_options = []
+
+    class Cursor:
+        def fetchone(self):
+            return {"id": 41}
+
+    class Connection:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            del exc_type, exc_value, traceback
+            return False
+
+        def execute(self, query, parameters=()):
+            statements.append((query, parameters))
+            return Cursor()
+
+    psycopg = ModuleType("psycopg")
+    psycopg.connect = lambda url, **options: (
+        connection_options.append((url, options)) or Connection()
+    )
+    psycopg_rows = ModuleType("psycopg.rows")
+    psycopg_rows.dict_row = object()
+    monkeypatch.setitem(sys.modules, "psycopg", psycopg)
+    monkeypatch.setitem(sys.modules, "psycopg.rows", psycopg_rows)
+
+    store = ScanStore("postgres://db.example/scanner")
+    scan_id = store.save_scan(
+        {
+            "target": "https://example.com",
+            "status": "completed",
+            "score": 90,
+            "summary": "No findings.",
+        }
+    )
+
+    assert scan_id == 41
+    assert connection_options[0][0] == "postgresql://db.example/scanner"
+    assert connection_options[0][1]["connect_timeout"] == 10
+    insert_query, parameters = statements[-1]
+    assert "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)" in insert_query
+    assert insert_query.rstrip().endswith("RETURNING id")
+    assert len(parameters) == 10
+
+
 def test_database_schema_is_present(tmp_path: Path):
     database_path = tmp_path / "scanner.db"
     from database import ScanStore

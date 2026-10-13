@@ -34,7 +34,8 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.config.from_object(Config)
-app.config["DATABASE_PATH"] = str(Config.database_path())
+app.config["DATABASE_PATH"] = Config.database_location()
+app.config["DATABASE_URL"] = Config.DATABASE_URL
 app.config.setdefault("CONTACT_MESSAGES", [])
 app.config["ADMIN_USERS"] = [
     {"username": "admin", "role": "admin", "status": "active"},
@@ -42,8 +43,13 @@ app.config["ADMIN_USERS"] = [
     {"username": "auditor", "role": "auditor", "status": "pending"},
 ]
 
+
+def _database_location() -> str:
+    return app.config.get("DATABASE_URL") or app.config["DATABASE_PATH"]
+
+
 with app.app_context():
-    initialize_database(app.config["DATABASE_PATH"])
+    initialize_database(_database_location())
 
 
 def _admin_required():
@@ -72,7 +78,7 @@ def dashboard():
     """Render the latest scan history dashboard."""
     scans = [
         redact_scan_data(scan)
-        for scan in get_db(app.config["DATABASE_PATH"]).fetch_recent_scans(limit=10)
+        for scan in get_db(_database_location()).fetch_recent_scans(limit=10)
     ]
     total_findings = sum(len(scan["findings"]) for scan in scans)
     high_risk_findings = sum(
@@ -140,7 +146,7 @@ def register_submit():
             error_message="Enter a valid email address.",
         ), 400
 
-    store = get_db(app.config["DATABASE_PATH"])
+    store = get_db(_database_location())
     if store.get_user_by_email(email) is not None:
         return render_template(
             "register.html",
@@ -172,7 +178,7 @@ def login_submit():
     """Authenticate a registered user."""
     email = (request.form.get("email") or "").strip().lower()
     password = (request.form.get("password") or "")
-    user = get_db(app.config["DATABASE_PATH"]).get_user_by_email(email)
+    user = get_db(_database_location()).get_user_by_email(email)
 
     if user is None or not check_password_hash(user["password_hash"], password):
         return render_template(
@@ -192,7 +198,7 @@ def account():
     user_id = session.get("user_id")
     if not user_id:
         return redirect(url_for("login"))
-    user = get_db(app.config["DATABASE_PATH"]).get_user(user_id)
+    user = get_db(_database_location()).get_user(user_id)
     if user is None:
         session.clear()
         return redirect(url_for("login"))
@@ -296,7 +302,7 @@ def about():
 def assistant_page():
     """Render the optional AI assistant for a saved scan."""
     scan_id = request.args.get("scan_id", "").strip()
-    scan = get_db(app.config["DATABASE_PATH"]).get_scan(scan_id) if scan_id else None
+    scan = get_db(_database_location()).get_scan(scan_id) if scan_id else None
     if scan_id and scan is None:
         return render_template("error.html", message="Scan not found."), 404
     if scan is not None:
@@ -386,7 +392,7 @@ def assistant_api():
         return {"error": "Questions must be 1,000 characters or fewer."}, 400
 
     scan_id = str(payload.get("scan_id", "")).strip()
-    scan = get_db(app.config["DATABASE_PATH"]).get_scan(scan_id) if scan_id else None
+    scan = get_db(_database_location()).get_scan(scan_id) if scan_id else None
     if scan_id and scan is None:
         return {"error": "Scan not found."}, 404
 
@@ -662,11 +668,11 @@ def admin_users():
 @app.get("/reports/<scan_id>")
 def report(scan_id: str):
     """Render a persisted scan report."""
-    scan = get_db(app.config["DATABASE_PATH"]).get_scan(scan_id)
+    scan = get_db(_database_location()).get_scan(scan_id)
     if scan is None:
         return render_template("error.html", message="Scan not found."), 404
     scan = redact_scan_data(scan)
-    report_available = get_db(app.config["DATABASE_PATH"]).get_report(int(scan["id"])) is not None
+    report_available = get_db(_database_location()).get_report(int(scan["id"])) is not None
     return render_template(
         "report.html",
         scan=scan,
@@ -677,7 +683,7 @@ def report(scan_id: str):
 @app.get("/api/reports/<scan_id>.json")
 def report_json(scan_id: str):
     """Return a machine-readable scan report."""
-    scan = get_db(app.config["DATABASE_PATH"]).get_scan(scan_id)
+    scan = get_db(_database_location()).get_scan(scan_id)
     if scan is None:
         return {"error": "Scan not found."}, 404
     return redact_scan_data(scan)
@@ -686,7 +692,7 @@ def report_json(scan_id: str):
 @app.get("/api/reports/export.json")
 def export_reports_json():
     """Export all saved reports as JSON."""
-    scans = get_db(app.config["DATABASE_PATH"]).fetch_recent_scans(limit=1000)
+    scans = get_db(_database_location()).fetch_recent_scans(limit=1000)
     return [redact_scan_data(scan) for scan in scans]
 
 
@@ -695,7 +701,7 @@ def export_reports_csv():
     """Export all saved reports as CSV."""
     scans = [
         redact_scan_data(scan)
-        for scan in get_db(app.config["DATABASE_PATH"]).fetch_recent_scans(limit=1000)
+        for scan in get_db(_database_location()).fetch_recent_scans(limit=1000)
     ]
     output = io.StringIO()
     writer = csv.writer(output)
@@ -721,7 +727,7 @@ def export_reports_csv():
 
 
 def _stored_or_generated_pdf(scan: dict) -> bytes:
-    store = get_db(app.config["DATABASE_PATH"])
+    store = get_db(_database_location())
     scan_id = int(scan["id"])
     pdf = store.get_report(scan_id)
     if pdf is not None:
@@ -736,7 +742,7 @@ def _stored_or_generated_pdf(scan: dict) -> bytes:
 @app.get("/reports/<int:scan_id>/download.pdf")
 def pdf_report(scan_id: int):
     """Download only the report associated with an existing scan identifier."""
-    scan = get_db(app.config["DATABASE_PATH"]).get_scan(scan_id)
+    scan = get_db(_database_location()).get_scan(scan_id)
     if scan is None:
         return {"error": "Scan not found."}, 404
     try:
@@ -774,7 +780,7 @@ def scan_api():
                 or "The scan did not complete; no report was generated."
             }, 502
         result = redact_scan_data(result)
-        store = get_db(app.config["DATABASE_PATH"])
+        store = get_db(_database_location())
         scan_id = store.save_scan(result)
         saved_scan = store.get_scan(str(scan_id))
         if saved_scan is None:

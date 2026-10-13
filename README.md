@@ -73,7 +73,9 @@ During Blueprint setup, provide these environment variables when Render prompts 
 
 Render generates `SECRET_KEY` automatically. Debug mode is disabled. Admin login is disabled unless both admin variables are configured.
 
-Render Free web services can sleep after 15 minutes without inbound traffic; the first visit after sleeping may take a while while the service starts again. The Free plan does not provide persistent disks. This deployment stores SQLite data under `/tmp/scanner.db`, so scan history, registered accounts, and other local database data can be lost when the service restarts or redeploys. The contact form messages are held in process memory and are also temporary. No database or hosting service requiring payment is configured.
+To keep scan history across Render restarts, create a PostgreSQL database on a free external database plan and add its connection URL as `DATABASE_URL` under Render Dashboard > service > Environment. Keep the URL private; do not commit it. The app creates its tables at startup and stores scans, user accounts, and PDF reports in PostgreSQL. If `DATABASE_URL` is not set, local SQLite is used instead.
+
+Render Free web services can sleep after 15 minutes without inbound traffic; the first visit after sleeping may take a while while the service starts again. The Free plan does not provide persistent disks. Without `DATABASE_URL`, SQLite data under `/tmp/scanner.db` - including scan history, registered accounts, and reports - can be lost when the service restarts or redeploys. Contact form messages remain in process memory and are temporary. Free database providers have their own storage, inactivity, and usage limits; check the selected provider's current terms. Existing SQLite records are not automatically copied to PostgreSQL.
 
 This repository is a **web vulnerability scanner**, not a network intrusion detection system (NIDS). Its scanner makes bounded HTTP/HTTPS requests and checks web responses. It does not capture packets or monitor network interfaces; Render's web-service environment is not being used or verified for packet-capture NIDS functionality.
 
@@ -99,7 +101,7 @@ pytest -q
 
 ## Configuration
 
-Set the values shown in `.env.example` in the process environment before starting the app (or use a dotenv loader in your deployment). Set a unique, random `SECRET_KEY` and configure `ADMIN_USERNAME` and `ADMIN_PASSWORD`; the admin login is disabled if its credentials are not configured. Do not commit your `.env` file. Local, private, and link-local targets are blocked unless `ALLOW_LOCAL_TARGETS=1` is set.
+Set the values shown in `.env.example` in the process environment before starting the app (or use a dotenv loader in your deployment). Set a unique, random `SECRET_KEY` and configure `ADMIN_USERNAME` and `ADMIN_PASSWORD`; the admin login is disabled if its credentials are not configured. Set `DATABASE_URL` to a PostgreSQL connection URL for durable hosted storage, or leave it empty to use SQLite. Do not commit your `.env` file. Local, private, and link-local targets are blocked unless `ALLOW_LOCAL_TARGETS=1` is set.
 
 ## Assessment reports
 
@@ -129,7 +131,7 @@ Keep keys in the server environment; never put them in frontend code or commit t
 - Cookie attribute validation
 - TLS certificate checks and CORS review
 - Risk scoring, OWASP mapping, and deduplicated findings
-- SQLite scan history and dashboard reporting
+- PostgreSQL scan history on hosting when `DATABASE_URL` is configured; SQLite locally by default
 - PDF export for saved reports
 
 ## Security boundary

@@ -9,17 +9,11 @@ services:
         value: "0"
       - key: HOST
         value: "0.0.0.0"
-      - key: PORT
-        value: "5000"
       - key: DATABASE_PATH
-        value: "/data/scanner.db"
+        value: "/tmp/scanner.db"
       - key: SECRET_KEY
         generateValue: true
       - key: ADMIN_USERNAME
         sync: false
       - key: ADMIN_PASSWORD
         sync: false
-    disk:
-      name: scanner-data
-      mountPath: /data
-      sizeGB: 1

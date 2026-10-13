@@ -63,16 +63,20 @@ Get-CimInstance Win32_Process |
     ForEach-Object { Stop-Process -Id $_.ProcessId -Force }
 ```
 
-## Deploy permanently
+## Deploy publicly on Render Free
 
-The project includes a Render deployment manifest. Push the repository to GitHub, then create a Render Blueprint from `render.yaml`. Render provides automatic restarts, HTTPS, and persistent disk storage.
+The project includes a Render Blueprint in `render.yaml` configured for the Free web-service plan. Push the repository to GitHub, then in Render choose **New + → Blueprint** and connect this repository. Render builds the Dockerfile and assigns a public HTTPS URL. The container listens on Render's injected `PORT` value (and defaults to port 5000 for local Docker runs).
 
-Configure all secrets in Render before deploying:
+During Blueprint setup, provide these environment variables when Render prompts for them:
 
-- `SECRET_KEY`: a long random value
 - `ADMIN_USERNAME`: a unique administrator username
 - `ADMIN_PASSWORD`: a strong password
-- `DATABASE_PATH`: `/data/scanner.db`
+
+Render generates `SECRET_KEY` automatically. Debug mode is disabled. Admin login is disabled unless both admin variables are configured.
+
+Render Free web services can sleep after 15 minutes without inbound traffic; the first visit after sleeping may take a while while the service starts again. The Free plan does not provide persistent disks. This deployment stores SQLite data under `/tmp/scanner.db`, so scan history, registered accounts, and other local database data can be lost when the service restarts or redeploys. The contact form messages are held in process memory and are also temporary. No database or hosting service requiring payment is configured.
+
+This repository is a **web vulnerability scanner**, not a network intrusion detection system (NIDS). Its scanner makes bounded HTTP/HTTPS requests and checks web responses. It does not capture packets or monitor network interfaces; Render's web-service environment is not being used or verified for packet-capture NIDS functionality.
 
 The application is also ready for Docker:
 

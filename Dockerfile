@@ -20,6 +20,6 @@ VOLUME ["/data"]
 EXPOSE 5000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/api/health', timeout=3).read()" || exit 1
+    CMD-SHELL python -c "import os,urllib.request; urllib.request.urlopen('http://127.0.0.1:' + os.getenv('PORT', '10000') + '/api/health', timeout=3).read()" || exit 1
 
-CMD ["waitress-serve", "--listen=0.0.0.0:5000", "app:app"]
+CMD ["sh", "-c", "exec waitress-serve --listen=0.0.0.0:${PORT:-10000} app:app"]

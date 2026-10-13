@@ -127,6 +127,27 @@ def test_contact_form_and_admin_login_flow(monkeypatch):
     assert b"Admin Dashboard" in login_response.data
 
 
+def test_admin_login_requires_configured_credentials(monkeypatch):
+    monkeypatch.setitem(app.config, "ADMIN_USERNAME", None)
+    monkeypatch.setitem(app.config, "ADMIN_PASSWORD", None)
+
+    response = app.test_client().post(
+        "/admin/login",
+        data={"username": "admin", "password": "admin123"},
+    )
+
+    assert response.status_code == 401
+
+
+def test_admin_users_page_requires_admin_login():
+    client = app.test_client()
+    assert client.get("/admin/users").status_code == 302
+
+    with client.session_transaction() as session:
+        session["admin_logged_in"] = True
+    assert client.get("/admin/users").status_code == 200
+
+
 def test_public_registration_and_login(tmp_path):
     original_database_path = app.config["DATABASE_PATH"]
     app.config["DATABASE_PATH"] = str(tmp_path / "scanner.db")
@@ -183,7 +204,7 @@ def test_registration_rejects_duplicate_email(tmp_path):
 def test_advanced_scan_heuristics_and_policy_pages(monkeypatch):
     client = app.test_client()
 
-    for route in ["/faq", "/report-abuse", "/admin/users"]:
+    for route in ["/faq", "/report-abuse"]:
         response = client.get(route)
         assert response.status_code == 200
 
@@ -347,6 +368,7 @@ def test_redirect_to_local_target_is_rejected(monkeypatch):
 
     class FakeSession:
         def get(self, url, **_kwargs):
+            del _kwargs
             requested_urls.append(url)
             return RedirectResponse()
 
@@ -367,6 +389,7 @@ def test_response_body_size_is_enforced_while_streaming():
         headers = {}
 
         def iter_content(self, chunk_size):
+            del chunk_size
             yield b"1234"
             yield b"5678"
 

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-import os
 import re
 from datetime import datetime
 from pathlib import Path
@@ -30,8 +29,6 @@ app = Flask(__name__)
 app.config.from_object(Config)
 app.config["DATABASE_PATH"] = str(Config.database_path())
 app.config.setdefault("CONTACT_MESSAGES", [])
-app.config["ADMIN_USERNAME"] = os.getenv("ADMIN_USERNAME", "admin")
-app.config["ADMIN_PASSWORD"] = os.getenv("ADMIN_PASSWORD", "admin123")
 app.config["ADMIN_USERS"] = [
     {"username": "admin", "role": "admin", "status": "active"},
     {"username": "analyst", "role": "analyst", "status": "active"},
@@ -512,6 +509,8 @@ def report_abuse():
 @app.get("/admin/users")
 def admin_users():
     """Render the admin users management page."""
+    if not _admin_required():
+        return redirect(url_for("admin_login"))
     return render_template(
         "admin_users.html",
         users=app.config.get("ADMIN_USERS", []),
